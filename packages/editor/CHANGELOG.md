@@ -1,4 +1,9 @@
-## 5.0.2 (Unreleased)
+## 6.0.0 (Unreleased)
+
+### Breaking Changes
+
+- The `UnsavedChangesWarning` component no longer accepts a `forceIsDirty` prop.
+- `mediaDetails` in object passed to `onFileChange` callback of `mediaUpload`. Please use `media_details` property instead.
 
 ### Polish
 
