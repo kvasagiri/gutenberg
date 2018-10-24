@@ -38,8 +38,10 @@ import {
 	getTextContent,
 	insert,
 	insertLineSeparator,
+	remove,
 	isEmptyLine,
 	unstableToDom,
+	LINE_SEPARATOR,
 } from '@wordpress/rich-text';
 import { decodeEntities } from '@wordpress/html-entities';
 
@@ -600,23 +602,36 @@ export class RichText extends Component {
 	onKeyDown( event ) {
 		const { keyCode } = event;
 
-		const isDelete = keyCode === DELETE || keyCode === BACKSPACE;
-		if ( isDelete ) {
-			this.onDeleteKeyDown( event );
-		}
-
 		const isHorizontalNavigation = keyCode === LEFT || keyCode === RIGHT;
 		if ( isHorizontalNavigation ) {
 			this.onHorizontalNavigationKeyDown( event );
+		}
+
+		if ( keyCode === DELETE || keyCode === BACKSPACE ) {
+			const record = this.createRecord();
+			const previousIndex = record.start - 1;
+
+			if ( this.multilineTag && record.text[ previousIndex ] === LINE_SEPARATOR ) {
+				this.onChange( remove( record, previousIndex, record.end ) );
+				event.preventDefault();
+				// TinyMCE won't stop on `preventDefault`.
+				event.stopImmediatePropagation();
+			} else {
+				this.onDeleteKeyDown( event );
+			}
 		}
 
 		// If we click shift+Enter on inline RichTexts, we avoid creating two contenteditables
 		// We also split the content and call the onSplit prop if provided.
 		if ( keyCode === ENTER ) {
 			event.preventDefault();
+			// const { startContainer, endContainer, startOffset, endOffset } = getSelection().getRangeAt(0);
+			// console.log( { startContainer, endContainer, startOffset, endOffset } );
+
+			const record = this.createRecord();
 
 			if ( this.props.onReplace ) {
-				const text = getTextContent( this.getRecord() );
+				const text = getTextContent( record );
 				const transformation = findTransform( this.enterPatterns, ( item ) => {
 					return item.regExp.test( text );
 				} );
@@ -634,15 +649,12 @@ export class RichText extends Component {
 			}
 
 			if ( this.multilineTag ) {
-				const record = this.getRecord();
-
 				if ( this.props.onSplit && isEmptyLine( record ) ) {
 					this.props.onSplit( ...split( record ).map( this.valueToFormat ) );
 				} else {
 					this.onChange( insertLineSeparator( record ) );
 				}
 			} else if ( event.shiftKey || ! this.props.onSplit ) {
-				const record = this.getRecord();
 				const text = getTextContent( record );
 				const length = text.length;
 				let toInsert = '\n';
@@ -657,7 +669,7 @@ export class RichText extends Component {
 					toInsert = '\n\n';
 				}
 
-				this.onChange( insert( this.getRecord(), toInsert ) );
+				this.onChange( insert( record, toInsert ) );
 			} else {
 				this.splitContent();
 			}
