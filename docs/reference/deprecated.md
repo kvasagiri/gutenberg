@@ -1,6 +1,10 @@
 Gutenberg's deprecation policy is intended to support backwards-compatibility for releases, when possible. The current deprecations are listed below and are grouped by _the version at which they will be removed completely_. If your plugin depends on these behaviors, you must update to the recommended alternative before the noted version.
 
-# 4.3.0
+## 4.4.0
+
+- `wp.compose.remountOnPropChange` has been removed.
+
+## 4.3.0
 
 - `isEditorSidebarPanelOpened` selector (`core/edit-post`) has been removed. Please use `isEditorPanelEnabled` instead.
 - `toggleGeneralSidebarEditorPanel` action (`core/edit-post`) has been removed. Please use `toggleEditorPanelOpened` instead.
